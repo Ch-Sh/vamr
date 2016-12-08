@@ -1,1 +1,6 @@
+# emacs backup file
 *~
+
+# data folder
+/data/*
+!/data/readme.txt
