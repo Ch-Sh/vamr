@@ -1,15 +1,18 @@
 function [R_C_W, t_C_W, keypoints2D, landmarks3D_matched] = estimatePoseRANSAC(keypoints2D, landmarks3D_matched,K)
 % Initialize RANSAC.
-use_p3p = false;
+use_p3p = true;
+keypoints2D = [keypoints2D(:,2),keypoints2D(:,1)];
+
 keypoints2D = keypoints2D';
 landmarks3D_matched = landmarks3D_matched';
+
 if use_p3p
     num_iterations = 200;
     pixel_tolerance = 10;
     k = 3;
 else
     num_iterations = 2000;
-    pixel_tolerance = 20;
+    pixel_tolerance = 10;
     k = 6;
 end
 
@@ -45,7 +48,6 @@ for i = 1:num_iterations
         R_C_W_guess = M_C_W_guess(:, 1:3);
         t_C_W_guess = M_C_W_guess(:, end);
     end
-    
     % Count inliers:
     projected_points = projectPoints(...
         (R_C_W_guess(:,:,1) * landmarks3D_matched) + ...
@@ -54,7 +56,8 @@ for i = 1:num_iterations
     difference = keypoints2D - projected_points;
     errors = sum(difference.^2, 1);
     is_inlier = errors < pixel_tolerance^2;
-    
+
+
     if use_p3p
         projected_points = projectPoints(...
             (R_C_W_guess(:,:,2) * landmarks3D_matched) + ...
@@ -69,7 +72,7 @@ for i = 1:num_iterations
     end
     
     if nnz(is_inlier) > max_num_inliers && nnz(is_inlier) >= 6
-        max_num_inliers = nnz(is_inlier);        
+        max_num_inliers = nnz(is_inlier);
         inlier_mask = is_inlier;
     end
     
@@ -86,9 +89,15 @@ else
     R_C_W = M_C_W(:, 1:3);
     t_C_W = M_C_W(:, end);
 end
+if max_num_inliers == 0
+    keypoints2D = keypoints2D';
 
-% keypoints2D = keypoints2D(:, inlier_mask>0);
-% landmarks3D_matched = landmarks3D_matched(:, inlier_mask>0);
-keypoints2D = keypoints2D';
-landmarks3D_matched = landmarks3D_matched';
+    landmarks3D_matched = landmarks3D_matched';
+else
+
+    keypoints2D = keypoints2D(:, inlier_mask>0);
+    landmarks3D_matched = landmarks3D_matched(:, inlier_mask>0);
+    keypoints2D = keypoints2D';
+    landmarks3D_matched = landmarks3D_matched';
+end
 end
