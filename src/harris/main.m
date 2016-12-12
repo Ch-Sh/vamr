@@ -3,17 +3,17 @@ close all;
 rng(1);
 
 %initial - first frame 
-K = load('../data/K.txt');
-database_keypoints = load('../data/keypoints.txt')';
-p_W_landmarks = load('../data/p_W_landmarks.txt')';
-database_image = imread('../data/000000.png');
+K = load('../../data/K.txt');
+database_keypoints = load('../../data/keypoints.txt')';
+p_W_landmarks = load('../../data/p_W_landmarks.txt')';
+database_image = imread('../../data/000000.png');
 
 % Dependencies
 addpath('plot');
-addpath('./01_pnp');
-addpath('./02_detect_describe_match');
-addpath('./00_camera_projection');
-addpath('./04_8point/triangulation');
+addpath('../01_pnp');
+addpath('../02_detect_describe_match');
+addpath('../00_camera_projection');
+addpath('../04_8point/triangulation');
 
 %% Localization with RANSAC + DLT/P3P test: can be used for tuning harris detection and matching 
 % query_image = imread('../data/000004.png');
