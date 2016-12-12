@@ -12,6 +12,6 @@ for i = 1:num
     temp_scores(kp(1)-r:kp(1)+r, kp(2)-r:kp(2)+r) = ...
         zeros(2*r + 1, 2*r + 1);
 end
-
+keypoints = flipud(keypoints);
 end
 

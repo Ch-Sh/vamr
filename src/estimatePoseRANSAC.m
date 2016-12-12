@@ -1,7 +1,6 @@
 function [R_C_W, t_C_W, keypoints2D, landmarks3D_matched] = estimatePoseRANSAC(keypoints2D, landmarks3D_matched,K)
 % Initialize RANSAC.
 use_p3p = true;
-keypoints2D = [keypoints2D(:,2),keypoints2D(:,1)];
 
 keypoints2D = keypoints2D';
 landmarks3D_matched = landmarks3D_matched';
@@ -17,7 +16,6 @@ else
 end
 
 inlier_mask = zeros(1, size(keypoints2D, 2));
-keypoints2D = flipud(keypoints2D);
 max_num_inliers_history = zeros(1, num_iterations);
 max_num_inliers = 0;
 
