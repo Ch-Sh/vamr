@@ -1,0 +1,13 @@
+function keypoints = harrisCorner(img, Param)
+
+    harris_corner = detectHarrisFeatures(img);
+
+    harris_corner = selectUniform( ...
+        harris_corner, ...
+        Param.harris_corner_number, ...
+        size(img) ...
+        );
+    
+    keypoints = harris_corner.Location;
+
+end

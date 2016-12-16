@@ -1,0 +1,13 @@
+function [P, inlier_mask] = triangulationRansac(kp1, kp2, M1, M2, Param)
+
+   % 1 point RANSAC to filter outlier
+    inlier_mask = ransac1Point(kp1, kp2, Param); 
+    
+    % triangulation
+    p1 = kp1(inlier_mask, :); p1 = [p1, ones(size(p1, 1), 1)].';
+    p2 = kp2(inlier_mask, :); p2 = [p2, ones(size(p2, 1), 1)].';
+    P = linearTriangulation(p1, p2, M1, M2).';
+
+return
+
+

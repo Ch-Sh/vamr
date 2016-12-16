@@ -1,4 +1,6 @@
-function [R_C_W, t_C_W, keypoints2D, landmarks3D_matched] = estimatePoseRANSAC(keypoints2D, landmarks3D_matched,K)
+function [R_C_W, t_C_W, inlier_mask] ...
+    = estimatePoseRANSAC(keypoints2D, landmarks3D_matched, K)
+
 % Initialize RANSAC.
 use_p3p = true;
 
@@ -7,11 +9,11 @@ landmarks3D_matched = landmarks3D_matched';
 
 if use_p3p
     num_iterations = 200;
-    pixel_tolerance = 10;
+    pixel_tolerance = 3;
     k = 3;
 else
     num_iterations = 2000;
-    pixel_tolerance = 10;
+    pixel_tolerance = 3;
     k = 6;
 end
 
@@ -20,7 +22,7 @@ max_num_inliers_history = zeros(1, num_iterations);
 max_num_inliers = 0;
 
 % RANSAC
-for i = 1:num_iterations
+for i = 1:5*num_iterations
     [landmark_sample, idx] = datasample(...
         landmarks3D_matched, k, 2, 'Replace', false);
     keypoint_sample = keypoints2D(:, idx);
