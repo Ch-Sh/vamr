@@ -4,3 +4,7 @@
 # data folder
 /data/*
 !/data/readme.txt
+
+# local folders
+/all_solns/*
+/bk/*
