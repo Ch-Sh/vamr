@@ -2,6 +2,10 @@ clear all
 close all
 clc
 
+%% User specification
+data_set = 2;   % 1 = parking, 2 = kitti, 3 = malaga
+seconds_between_iteration = 0.0;    % seconds of pause between iteration (allow figure to show up)
+
 %% Import
 addpath('./plot');
 addpath('./localization');
@@ -23,9 +27,9 @@ Param.first_keyframe_id = 1;
 Param.harris_corner_number = 700;
 Param.scale = 1;
 Param.ransac1pt_threshold = 0.3;
+Param.ransac8pt_threshold = 0.00005;
 
 % data set related parameter
-data_set = 2;
 switch data_set
     case 1  % parking
         Param.img_path = '../data/parking/images/img_%05d.png';
@@ -37,13 +41,6 @@ switch data_set
         Param.img_path = '../data/parking/images/img_%05d.png';
         Param.K = load('../data/parking/K.txt');
 end
-
-
-% img = imread(sprintf(Param.img_path, 3));
-% keypoints = harrisCorner(img, Param);
-% imshow(img);
-% hold on;
-% plot(keypoints(:, 1), keypoints(:, 2), 'go');
 
 % history
 data_length = 10000;
@@ -119,7 +116,7 @@ for i = Param.first_keyframe_id:100,
     History.key_frame(i) = is_keyframe;  
     
     % reduce frequency for figures
-    pause(0.1);
+    pause(seconds_between_iteration);
 
 end
 

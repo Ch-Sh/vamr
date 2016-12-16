@@ -8,6 +8,7 @@ function [R_cw, T_cw, is_keyframe, LastKeyFrame, tracker1, tracker2, ...
         % initialize key points and tracker
         kp2 = harrisCorner(img, Param);
         
+        % uncomment following two lines to load pre-computed landmarks (for kitti only)
         kp2 = load('../data/keypoints.txt');
         kp2 = [kp2(:, 2), kp2(:, 1)];
         
@@ -26,7 +27,7 @@ function [R_cw, T_cw, is_keyframe, LastKeyFrame, tracker1, tracker2, ...
         LastKeyFrame(2).keypoints = kp2;
         LastKeyFrame(2).landmarks = [];
         
-        % uncomment following lines to load pre-computed landmarks
+        % uncomment following four lines to load pre-computed landmarks (for kitti only)
         LastKeyFrame(1) = LastKeyFrame(2);
         LastKeyFrame(2).landmarks = load('../data/p_W_landmarks.txt');
         kp1 = kp2;
@@ -54,6 +55,7 @@ function [R_cw, T_cw, is_keyframe, LastKeyFrame, tracker1, tracker2, ...
         % initialize key points and tracker
         kp1 = harrisCorner(img, Param);
         initialize(tracker1, kp1, img);
+        valid1 = [];
         
         % initialize R, T
         R_cw = eye(3);
@@ -116,10 +118,10 @@ function [R_cw, T_cw, is_keyframe, LastKeyFrame, tracker1, tracker2, ...
         is_keyframe = 0;
         return;
     end
-    if mod(id, 7) ~= 0,
-        is_keyframe = 0;
-        return;
-    end
+%     if mod(id, 7) ~= 0,
+%         is_keyframe = 0;
+%         return;
+%     end
     disp('Key frame selected.');
     is_keyframe = 1;
     
@@ -130,7 +132,8 @@ function [R_cw, T_cw, is_keyframe, LastKeyFrame, tracker1, tracker2, ...
         LastKeyFrame(1).keypoints(valid1, :), ...
         kp1(valid1, :), ...
         M1, ...
-        M2 ...
+        M2, ...
+        Param ...
         ).';
     
     % update LastKeyFrame(2)
