@@ -4,7 +4,7 @@ clc
 
 %% User specification
 data_set = 2;   % 1 = parking, 2 = kitti, 3 = malaga
-seconds_between_iteration = 0.0;    % seconds of pause between iteration (allow figure to show up)
+seconds_between_iteration = 0.1;    % seconds of pause between iteration (allow figure to show up)
 
 %% Import
 addpath('./plot');
@@ -21,13 +21,13 @@ Param.tracker.maxIterations = 1000;
 Param.tracker.numPyramidLevels = 3; % Default 3
 
 Param.key_frame_threshold = 0.15;
-Param.second_keyframe_id = 5;
+Param.second_keyframe_id = 2;
 Param.first_keyframe_id = 1;
 
-Param.harris_corner_number = 700;
+Param.harris_corner_number = 500;
 Param.scale = 1;
-Param.ransac1pt_threshold = 0.3;
-Param.ransac8pt_threshold = 0.00005;
+Param.ransac1pt_threshold = 0.1;
+Param.ransac8pt_threshold = 0.05;
 
 % data set related parameter
 switch data_set
@@ -71,44 +71,43 @@ LastKeyFrame = struct( ...
     'landmarks', {[], []} ...
     );
 
-%% main iteration
-for i = Param.first_keyframe_id:100,
+%% Initialization
 
-    % read image (TODO color image)
+% figure
+figure('units', 'normalized', 'outerposition', [0 0 1 1]);
+
+% read image
+img = imread(sprintf(Param.img_path, Param.second_keyframe_id));
+img2 = imread(sprintf(Param.img_path, Param.first_keyframe_id));
+if data_set ~= 2, 
+    img = rgb2gray(img); 
+    img2 = rgb2gray(img2);
+end
+
+% initialization
+[R_cw, T_cw, LastKeyFrame, tracker1, tracker2, kp1, kp2, valid1, valid2] ...
+    = initializeVisualOdometry(img, img2, LastKeyFrame, Param, tracker1, tracker2);
+clearvars img2;
+
+% vasualization
+is_keyframe = 1;
+plotData;
+
+%% main iteration
+
+for i = Param.second_keyframe_id:100,
+
+    % read image
     img = imread(sprintf(Param.img_path, i));
     if data_set ~= 2, img = rgb2gray(img); end
-    disp(i);
 
     % perform visual odometry
     [R_cw, T_cw, is_keyframe, LastKeyFrame, tracker1, tracker2, ...
         kp1, kp2, valid1, valid2] ...
         = visualOdometry(img, i, LastKeyFrame, Param, tracker1, tracker2);
 
-    % plot image and keypoints
-    subplot(1, 3, [1 2]);
-    imshow(img); hold on;
-    if ~isempty(kp2), 
-        plot(kp2(:, 1), kp2(:, 2), 'go'); 
-        plot(kp2(valid2, 1), kp2(valid2, 2), 'g*');
-    end
-    if ~isempty(kp1), 
-        plot(kp1(:, 1), kp1(:, 2), 'bo'); 
-        plot(kp1(valid1, 1), kp1(valid1, 2), 'b*'); 
-    end
-    
-    % plot pose and landmark (TODO why minus, view)
-    subplot(1, 3, 3); hold on;
-    plotCoordinateFrame(R_cw', -R_cw'*T_cw, 2);
-    if is_keyframe && ~isempty(LastKeyFrame(2).landmarks),
-        scatter3(LastKeyFrame(2).landmarks(:, 1), ...
-            LastKeyFrame(2).landmarks(:, 2), ...
-            LastKeyFrame(2).landmarks(:, 3), 5, '*');
-    end
-    set(gcf, 'GraphicsSmoothing', 'on');
-    view(0, 0);
-    axis equal;
-    axis vis3d;
-    axis([-15 10 -10 5 -1 40]);
+    % visualization
+    plotData;
     
     % store data
     History.R_cw(:, i) = reshape(R_cw, [9, 1]); 
@@ -119,4 +118,7 @@ for i = Param.first_keyframe_id:100,
     pause(seconds_between_iteration);
 
 end
+
+% save history data
+save('data.mat', 'History', 'Param');
 
