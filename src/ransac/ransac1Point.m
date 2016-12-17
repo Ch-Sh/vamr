@@ -10,7 +10,7 @@ function inlier_mask = ransac1Point(kp1, kp2, Param)
         kp1_proj(2, :) + kp2_proj(2, :) ...
         ) * (-2);
     theta = wrapTo2Pi(theta);
-    [num, ~, bins] = histcounts(theta, 32); num = num / max(num);
+    [num, ~, bins] = histcounts(theta, 7); num = num / sum(num);
     idx = 1:length(num); idx = idx(num > Param.ransac1pt_threshold);
     inlier_mask = ismember(bins, idx);
     
