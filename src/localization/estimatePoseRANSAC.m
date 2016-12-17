@@ -22,7 +22,7 @@ max_num_inliers_history = zeros(1, num_iterations);
 max_num_inliers = 0;
 
 % RANSAC
-for i = 1:5*num_iterations
+for i = 1:num_iterations
     [landmark_sample, idx] = datasample(...
         landmarks3D_matched, k, 2, 'Replace', false);
     keypoint_sample = keypoints2D(:, idx);
@@ -100,4 +100,8 @@ else
     keypoints2D = keypoints2D';
     landmarks3D_matched = landmarks3D_matched';
 end
+
+% % added by DJ on 12/26/2016
+% t_C_W = -t_C_W;
+
 end

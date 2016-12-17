@@ -20,21 +20,6 @@ function [R_cw, T_cw, is_keyframe, LastKeyFrame, tracker1, tracker2, ...
     
     %% Triangulation
     
-    % key frame selection (TODO adjust condition)
-%     keyframe_distance = norm(T_cw - LastKeyFrame(1).T_cw);
-%     average_depth = mean(LastKeyFrame(2).landmarks(valid2, :), 1).';
-%     average_depth = norm(average_depth - T_cw);
-%     if keyframe_distance / average_depth < Param.key_frame_threshold,
-%         is_keyframe = 0;
-%         return;
-%     end
-    if mod(id, 5) ~= 0,
-        is_keyframe = 0;
-        return;
-    end
-    disp('Key frame selected.');
-    is_keyframe = 1;
-    
     % triangulation    
     M1 = Param.K * [LastKeyFrame(1).R_cw, LastKeyFrame(1).T_cw];
     M2 = Param.K * [R_cw, T_cw];
@@ -45,9 +30,38 @@ function [R_cw, T_cw, is_keyframe, LastKeyFrame, tracker1, tracker2, ...
         );
     valid1(valid1) = inlier_mask;
     
+    % filter and assemble landmarks
+    p1 = R_cw.' * T_cw;
+    p2 = LastKeyFrame(1).R_cw.' * LastKeyFrame(1).T_cw;
+    inlier_mask = filterLandmarks( ...
+        landmarks, p1, p2, R_cw, LastKeyFrame(1).R_cw, Param);
+    new_landmark_num = sum(inlier_mask);
+    
+    % check keyframe condition
+    t = sum(valid2) + sum(inlier_mask);  % number of valid landmarks
+    t = t / size(LastKeyFrame(2).landmarks, 1); 
+    if (t < Param.key_frame_landmark_percent_threshold && ... 
+            new_landmark_num < 20),
+        is_keyframe = 0;
+        fprintf('Img %d is not selected as keyframe (t = %03f, new landmark = %d).\n', ...
+            id, t, new_landmark_num);
+        return;
+    end  
+    is_keyframe = 1;
+    fprintf('Img %d is selected as keyframe (t = %03f, new landmark = %d).\n', ...
+        id, t, new_landmark_num);
+    
+    % assemble landmarks and keypoints
+    landmarks = landmarks(inlier_mask, :);
+    landmarks = [LastKeyFrame(2).landmarks(valid2, :); landmarks];
+    valid1(valid1) = inlier_mask;
+    keypoints = [kp2(valid2, :); kp1(valid1, :)];
+    
     % update LastKeyFrame(2)
-    LastKeyFrame(2) = LastKeyFrame(1);
-    LastKeyFrame(2).keypoints = LastKeyFrame(2).keypoints(valid1, :);
+    LastKeyFrame(2).id = LastKeyFrame(1).id;
+    LastKeyFrame(2).R_cw = LastKeyFrame(1).R_cw;
+    LastKeyFrame(2).T_cw = LastKeyFrame(1).T_cw;
+    LastKeyFrame(2).keypoints = keypoints;
     LastKeyFrame(2).landmarks = landmarks;
     
     % update LastKeyFrame(1)
